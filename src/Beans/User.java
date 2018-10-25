@@ -4,12 +4,14 @@ public class User {
 	private String name;
 	private String ip;
 	private int port;
+	private long heartbeatTime;
 	
-	public User(String name, String ip, int port) {
+	public User(String name, String ip, int port, long heartbeatTime) {
 		super();
 		this.name = name;
 		this.ip = ip;
 		this.port = port;
+		this.heartbeatTime = heartbeatTime;
 	}
 
 	public String getName() {
@@ -34,5 +36,13 @@ public class User {
 
 	public void setPort(int port) {
 		this.port = port;
+	}
+	
+	public long getHeartbeatTime() {
+		return heartbeatTime;
+	}
+
+	public void setHeartbeatTime(long heartbeatTime) {
+		this.heartbeatTime = heartbeatTime;
 	}
 }
