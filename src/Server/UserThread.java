@@ -28,7 +28,7 @@ public class UserThread extends Thread {
 		for (User user : userInfoList) {
 			if (user.getName().equals(username))
 				return 1;
-			if(user.getPort() == port)
+			if (user.getPort() == port)
 				return 2;
 		}
 		return 0;
@@ -48,6 +48,18 @@ public class UserThread extends Thread {
 		// 将当前线程加入线程列表
 		userThreadMap.put(name, this);
 		System.out.println("用户 " + name + " 登录成功");
+	}
+	
+	//用户退出
+	public void Quit(String name) {
+		//从服务器删除该用户信息
+		userThreadMap.remove(name);
+		for (User user : userInfoList) {
+			if(user.getName().equals(name)) {
+				userInfoList.remove(user);
+			}
+		}
+		System.out.println("用户：" + name + "退出");
 	}
 
 	// 停止线程方法
@@ -71,31 +83,59 @@ public class UserThread extends Thread {
 			// 使用socket创建传输流
 			BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			PrintWriter writer = new PrintWriter(new DataOutputStream(socket.getOutputStream()));
-			
-			//进入循环，接收对应用户的消息
+
+			// 进入循环，接收对应用户的消息
 			while (!Thread.interrupted()) {
-				// 接收请求码
+				// 接收请求
 				String request = reader.readLine();
-				
-				if(request!=null) {
-					//处理登录请求
-					if(request.equals("00")) {
+				//分割请求
+				String code = request.substring(0, 2);
+				String content = request.substring(2);
+
+				if (code != null) {
+					// 处理登录请求
+					if (code.equals("00")) {
 						username = reader.readLine();
 						String port = reader.readLine();
 						int loginFlag = UserInofCheck(username, Integer.parseInt(port));
-						//登录成功
-						if(loginFlag == 0) {
-							Login(username,Integer.parseInt(port));
+						// 登录成功
+						if (loginFlag == 0) {
+							Login(username, Integer.parseInt(port));
 						}
-						
-						//向客户端返回结果
+
+						// 向客户端返回结果
 						writer.println(loginFlag);
 						writer.flush();
+					} else if (code.equals("10")) {
+						// 处理心跳消息
+						long nowTime = System.currentTimeMillis();
+						for (User user : userInfoList) {
+							if (user.getName().equals(username)) {
+								user.setHeartbeatTime(nowTime);
+								break;
+							}
+						}
+						// 返回用户列表
+						// 取得所有用户的名称，并放在同一个String userstr内
+						StringBuffer buffer = new StringBuffer();
+						buffer.append("11");
+						for (User user : userInfoList) {
+							buffer.append(user.getName()+",");
+						}
+						String userstr = buffer.substring(0, buffer.length() - 1);
+						//发送
+						writer.println(userstr);
+						writer.flush();
+					}else if(code.equals("01")) {
+						//处理退出消息
+						Quit(username);
+						MyStop();
 					}
 				}
 			}
 		} catch (IOException e) {
-			System.out.println("用户："+username+"异常断开连接，线程关闭");
+			System.out.println("用户：" + username + "异常断开连接，线程关闭");
+			Quit(username);
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
