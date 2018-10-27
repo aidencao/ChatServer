@@ -49,14 +49,15 @@ public class UserThread extends Thread {
 		userThreadMap.put(name, this);
 		System.out.println("用户 " + name + " 登录成功");
 	}
-	
-	//用户退出
+
+	// 用户退出
 	public void Quit(String name) {
-		//从服务器删除该用户信息
+		// 从服务器删除该用户信息
 		userThreadMap.remove(name);
 		for (User user : userInfoList) {
-			if(user.getName().equals(name)) {
+			if (user.getName().equals(name)) {
 				userInfoList.remove(user);
+				break;
 			}
 		}
 		System.out.println("用户：" + name + "退出");
@@ -88,7 +89,7 @@ public class UserThread extends Thread {
 			while (!Thread.interrupted()) {
 				// 接收请求
 				String request = reader.readLine();
-				//分割请求
+				// 分割请求
 				String code = request.substring(0, 2);
 				String content = request.substring(2);
 
@@ -120,14 +121,26 @@ public class UserThread extends Thread {
 						StringBuffer buffer = new StringBuffer();
 						buffer.append("11");
 						for (User user : userInfoList) {
-							buffer.append(user.getName()+",");
+							buffer.append(user.getName() + ",");
 						}
 						String userstr = buffer.substring(0, buffer.length() - 1);
-						//发送
+						// 发送
 						writer.println(userstr);
 						writer.flush();
-					}else if(code.equals("01")) {
-						//处理退出消息
+					} else if (code.equals("20")) {
+						// 处理发起聊天请求
+						String response = "22";// 默认没找到对应用户
+						for (User user : userInfoList) {
+							if (user.getName().equals(content)) {
+								response = "21" + user.getName() + "," + user.getPort();// 找到后返回该用户监听端口号
+								break;
+							}
+						}
+						// 发送响应
+						writer.println(response);
+						writer.flush();
+					} else if (code.equals("01")) {
+						// 处理退出消息
 						Quit(username);
 						MyStop();
 					}
