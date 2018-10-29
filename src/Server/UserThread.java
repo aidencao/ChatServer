@@ -24,7 +24,7 @@ public class UserThread extends Thread {
 	}
 
 	// 登陆时验证用户名和监听端口是否重复
-	public int UserInofCheck(String username, int port) {
+	private int UserInofCheck(String username, int port) {
 		for (User user : userInfoList) {
 			if (user.getName().equals(username))
 				return 1;
@@ -35,7 +35,7 @@ public class UserThread extends Thread {
 	}
 
 	// 登录
-	public void Login(String name, int port) {
+	private void Login(String name, int port) {
 		// 获取ip和登陆时间
 		InetAddress addr = socket.getInetAddress();
 		String ip = addr.getHostName();
@@ -51,7 +51,7 @@ public class UserThread extends Thread {
 	}
 
 	// 用户退出
-	public void Quit(String name) {
+	private void Quit(String name) {
 		// 从服务器删除该用户信息
 		userThreadMap.remove(name);
 		for (User user : userInfoList) {
